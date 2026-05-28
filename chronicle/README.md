@@ -21,6 +21,26 @@ Chronicle is a Claude Code plugin that captures session notes, lessons, and remi
 
 5. Enable the plugin in your project with `/chronicle:configure` to answer the onboarding questions and write your `userConfig`.
 
+### Install via marketplace
+
+If you have the Chronicle repository available locally (or pushed to a remote), you can register it as a Claude Code marketplace and install Chronicle through the standard plugin registry:
+
+```sh
+# Register the marketplace (point at the repo root where .claude-plugin/marketplace.json lives)
+claude plugin marketplace add /Users/awesome/dev/AI/Chronicle
+# or, once the repo is pushed:
+# claude plugin marketplace add https://github.com/you/Chronicle
+
+# Then install Chronicle from the marketplace
+claude plugin install chronicle@chronicle-marketplace
+```
+
+The `--plugin-dir` flag remains available for local development:
+
+```sh
+claude --plugin-dir /path/to/chronicle
+```
+
 ## Onboarding
 
 On first run, the `session-start` hook calls `first-run-init.sh` which creates your project vault directories. The `/chronicle:configure` skill guides you through five `userConfig` fields:
