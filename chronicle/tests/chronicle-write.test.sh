@@ -60,7 +60,7 @@ assert_file_not_exists() {
 assert_empty_dir() {
   local label="$1" dir="$2"
   local count
-  count=$(find "$dir" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+  count=$(find "$dir" -name "*.md" 2>/dev/null | wc -l | tr -d ' ') || true
   if [[ "$count" -eq 0 ]]; then
     echo "PASS: $label"
     ((++pass_count))
@@ -96,18 +96,18 @@ assert_matches "session-id: format <ts>-<8hex>" "$SESSION_ID" '^[0-9]+-[0-9a-f]{
 
 echo ""
 echo "=== TEST 3: stop-session with AUTO_WRITE_ON_STOP=false writes nothing ==="
-export CHRONICLE_PLUGIN_OPTION_AUTO_WRITE_ON_STOP="false"
+export CLAUDE_PLUGIN_OPTION_auto_write_on_stop="false"
 # session-id file must exist for stop-session to read
 [[ -f "$SESSION_FILE" ]] || "$BINARY" session-start
 "$BINARY" stop-session
 assert_file_not_exists "stop-session: deletes current-session-id" "$SESSION_FILE"
-assert_empty_dir "stop-session: no .md files written (AUTO_WRITE=false)" "$TMPDIR_BASE/test-project/sessions"
+assert_empty_dir "stop-session: no .md files written (AUTO_WRITE=false)" "$TMPDIR_BASE/vault/sessions"
 
 echo ""
 echo "=== TEST 4: lesson-candidate with LESSON_ON_FAILURE=false writes nothing ==="
-export CHRONICLE_PLUGIN_OPTION_LESSON_ON_FAILURE="false"
+export CLAUDE_PLUGIN_OPTION_lesson_on_failure="false"
 "$BINARY" lesson-candidate
-assert_empty_dir "lesson-candidate: no .md files written (LESSON_ON_FAILURE=false)" "$TMPDIR_BASE/test-project/lessons"
+assert_empty_dir "lesson-candidate: no .md files written (LESSON_ON_FAILURE=false)" "$TMPDIR_BASE/vault/lessons"
 
 echo ""
 echo "=== Results ==="

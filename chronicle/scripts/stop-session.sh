@@ -6,7 +6,7 @@ set -euo pipefail
 SLUG="${CHRONICLE_PROJECT_SLUG:-$(basename "${CLAUDE_PROJECT_DIR:-$PWD}")}"
 DATA_DIR="${CLAUDE_PLUGIN_DATA:-${HOME}/.claude/plugin-data}"
 SESSION_FILE="$DATA_DIR/$SLUG/current-session-id"
-AUTO_WRITE="${CHRONICLE_PLUGIN_OPTION_AUTO_WRITE_ON_STOP:-true}"
+AUTO_WRITE="${CLAUDE_PLUGIN_OPTION_auto_write_on_stop:-true}"
 
 if [[ ! -f "$SESSION_FILE" ]]; then
   echo "chronicle stop-session: no current-session-id found, skipping" >&2

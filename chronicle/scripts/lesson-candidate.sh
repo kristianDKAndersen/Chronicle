@@ -3,8 +3,8 @@
 # AD2: writes only to stderr (stdout reserved for Claude Code hook pipeline).
 set -euo pipefail
 
-LESSON_ON_FAILURE="${CHRONICLE_PLUGIN_OPTION_LESSON_ON_FAILURE:-true}"
-SIG_MODE="${CHRONICLE_PLUGIN_OPTION_SIGNIFICANCE_MODE:-hybrid}"
+LESSON_ON_FAILURE="${CLAUDE_PLUGIN_OPTION_lesson_on_failure:-true}"
+SIG_MODE="${CLAUDE_PLUGIN_OPTION_significance_mode:-hybrid}"
 
 if [[ "$LESSON_ON_FAILURE" != "true" ]]; then
   echo "chronicle lesson-candidate: LESSON_ON_FAILURE=false, skipping" >&2

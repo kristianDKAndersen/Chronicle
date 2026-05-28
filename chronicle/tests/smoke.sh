@@ -64,8 +64,8 @@ echo ""
 echo "[3/8] lesson-candidate"
 (
   cd "$TEST_PROJECT_DIR"
-  export CHRONICLE_PLUGIN_OPTION_LESSON_ON_FAILURE=true
-  export CHRONICLE_PLUGIN_OPTION_SIGNIFICANCE_MODE=hybrid
+  export CLAUDE_PLUGIN_OPTION_lesson_on_failure=true
+  export CLAUDE_PLUGIN_OPTION_significance_mode=hybrid
   bash "$CHRONICLE_BIN" lesson-candidate 2>&1
 ) | sed 's/^/  /'
 
@@ -80,7 +80,7 @@ echo ""
 echo "[4/8] stop-session"
 (
   cd "$TEST_PROJECT_DIR"
-  export CHRONICLE_PLUGIN_OPTION_AUTO_WRITE_ON_STOP=true
+  export CLAUDE_PLUGIN_OPTION_auto_write_on_stop=true
   bash "$CHRONICLE_BIN" stop-session 2>&1
 ) | sed 's/^/  /'
 
