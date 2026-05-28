@@ -10,7 +10,7 @@
       "name": "chronicle",
       "source": "./chronicle",
       "description": "Per-project persistent memory for any Claude agent (vault search, lessons, reminders, decisions).",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "author": {
         "name": "Kristian Andersen",
         "email": "kristian.andersen@samblagroup.com"

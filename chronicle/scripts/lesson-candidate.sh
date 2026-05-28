@@ -3,8 +3,12 @@
 # AD2: writes only to stderr (stdout reserved for Claude Code hook pipeline).
 set -euo pipefail
 
-LESSON_ON_FAILURE="${CLAUDE_PLUGIN_OPTION_lesson_on_failure:-true}"
-SIG_MODE="${CLAUDE_PLUGIN_OPTION_significance_mode:-hybrid}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib-options.sh
+source "$SCRIPT_DIR/lib-options.sh"
+
+LESSON_ON_FAILURE="$(chronicle_opt lesson_on_failure true)"
+SIG_MODE="$(chronicle_opt significance_mode hybrid)"
 
 if [[ "$LESSON_ON_FAILURE" != "true" ]]; then
   echo "chronicle lesson-candidate: LESSON_ON_FAILURE=false, skipping" >&2
@@ -24,7 +28,6 @@ if [[ -f "$SESSION_FILE" ]]; then
   SESSION_ID=$(cat "$SESSION_FILE")
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB="$SCRIPT_DIR/../lib/chronicle-vault.js"
 CREATED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 # Use a timestamp-based filename to avoid collisions between concurrent failures

@@ -2,7 +2,7 @@
   "name": "chronicle",
   "author": { "name": "Kristian Andersen", "email": "kristian.andersen@samblagroup.com" },
   "displayName": "Chronicle — Persistent Agent Memory",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Per-project persistent memory for any Claude agent.",
   "userConfig": {
     "significance_mode": {

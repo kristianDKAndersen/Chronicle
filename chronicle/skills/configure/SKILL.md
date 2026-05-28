@@ -39,7 +39,21 @@ Merge the updated values into `pluginConfigs.chronicle.options` in `~/.claude/se
 
 ### Project-level override (`--project` flag)
 
-When invoked as `/chronicle:configure --project`, write to `<repo>/.claude/chronicle-config.json` instead. Project-level values take precedence over global values at runtime. The plugin reads the project file first and falls back to the global config for any missing key.
+When invoked as `/chronicle:configure --project`, write to `<repo>/.claude/chronicle-config.json` instead. Project-level values take precedence over global values at runtime. The plugin reads the project file first and falls back to the global config (env var `CLAUDE_PLUGIN_OPTION_<key>`) for any key absent from the project file.
+
+**File shape** — flat JSON object, keys match the knob names exactly:
+
+```json
+{
+  "significance_mode": "hybrid",
+  "auto_write_on_stop": false,
+  "lesson_on_failure": true,
+  "surface_due_on_start": true,
+  "max_notes_before_prune": 1000
+}
+```
+
+Only include keys you want to override — omitted keys fall back to the global config or the default listed above. Do not wrap values in a nested object; the file is a single flat map of `key -> value` at `<repo>/.claude/chronicle-config.json`.
 
 ## Fallback
 
