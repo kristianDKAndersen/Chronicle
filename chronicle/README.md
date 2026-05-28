@@ -26,10 +26,10 @@ Chronicle is a Claude Code plugin that captures session notes, lessons, and remi
 If you have the Chronicle repository available locally (or pushed to a remote), you can register it as a Claude Code marketplace and install Chronicle through the standard plugin registry:
 
 ```sh
-# Register the marketplace (point at the repo root where .claude-plugin/marketplace.json lives)
-claude plugin marketplace add /Users/awesome/dev/AI/Chronicle
-# or, once the repo is pushed:
-# claude plugin marketplace add https://github.com/you/Chronicle
+# Register the marketplace from the published repo:
+claude plugin marketplace add https://github.com/kristianDKAndersen/Chronicle
+# or from a local clone (point at the repo root where .claude-plugin/marketplace.json lives):
+# claude plugin marketplace add /path/to/Chronicle
 
 # Then install Chronicle from the marketplace
 claude plugin install chronicle@chronicle-marketplace
