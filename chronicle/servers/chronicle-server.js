@@ -1,6 +1,7 @@
 // chronicle/servers/chronicle-server.js
 // Runtime: Bun — @modelcontextprotocol/sdk@1.29.0 confirmed compatible under Bun (Spike S3: RESOLVED, Bun).
-// Env: CHRONICLE_DATA_DIR (CLAUDE_PLUGIN_DATA), CHRONICLE_PROJECT_SLUG (CLAUDE_PROJECT_SLUG).
+// Env: CHRONICLE_DATA_DIR (from CLAUDE_PLUGIN_DATA); project slug = CHRONICLE_PROJECT_SLUG if set,
+//      else basename(CHRONICLE_PROJECT_DIR) (from CLAUDE_PROJECT_DIR — there is no CLAUDE_PROJECT_SLUG).
 // Startup resolves vault root = path.join(DATA_DIR, 'projects', SLUG), writes to CHRONICLE_VAULT,
 // then clears CHRONICLE_PROJECT_SLUG so chronicle-vault.js uses CHRONICLE_VAULT for all ops.
 
