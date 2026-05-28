@@ -75,9 +75,9 @@ case "$subcommand" in
     fi
     ;;
 
-  # import)
-  #   bash "$SCRIPTS_DIR/migrate-from-advisor.sh" "${@:2}"
-  #   ;;
+  import)
+    bash "$SCRIPTS_DIR/migrate-from-advisor.sh" "${@:2}"
+    ;;
   # ── End extension point ───────────────────────────────────────────────────
 
   "")
