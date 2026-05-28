@@ -3,50 +3,44 @@
   "displayName": "Chronicle — Persistent Agent Memory",
   "version": "1.0.0",
   "description": "Per-project persistent memory for any Claude agent.",
-  "hooks": {
-    "file": "./hooks/hooks.json"
-  },
-  "mcpServers": {
-    "file": "./.mcp.json"
-  },
-  "userConfig": [
-    {
-      "key": "capture_profile",
+  "hooks": "./hooks/hooks.json",
+  "mcpServers": "./.mcp.json",
+  "userConfig": {
+    "capture_profile": {
       "type": "string",
-      "description": "How much the plugin captures automatically. 'minimal' = only explicit saves; 'balanced' = significant events + explicit; 'aggressive' = all tool use.",
-      "options": ["minimal", "balanced", "aggressive"],
+      "title": "Capture Profile",
+      "description": "How much the plugin captures automatically. One of: minimal, balanced, aggressive. 'minimal' = only explicit saves; 'balanced' = significant events + explicit; 'aggressive' = all tool use.",
       "default": "balanced"
     },
-    {
-      "key": "significance_mode",
+    "significance_mode": {
       "type": "string",
-      "description": "Which events are considered significant enough to record. 'auto' = plugin decides; 'hybrid' = auto + explicit; 'explicit-only' = only manual saves.",
-      "options": ["auto", "hybrid", "explicit-only"],
+      "title": "Significance Mode",
+      "description": "Which events are considered significant enough to record. One of: auto, hybrid, explicit-only. 'auto' = plugin decides; 'hybrid' = auto + explicit; 'explicit-only' = only manual saves.",
       "default": "hybrid"
     },
-    {
-      "key": "auto_write_on_stop",
+    "auto_write_on_stop": {
       "type": "boolean",
+      "title": "Auto Write on Stop",
       "description": "Automatically write a session summary note when the session ends.",
       "default": true
     },
-    {
-      "key": "lesson_on_failure",
+    "lesson_on_failure": {
       "type": "boolean",
+      "title": "Lesson on Failure",
       "description": "Record a lesson-candidate note whenever a Bash tool use fails.",
       "default": true
     },
-    {
-      "key": "surface_due_on_start",
+    "surface_due_on_start": {
       "type": "boolean",
+      "title": "Surface Due on Start",
       "description": "Surface notes with upcoming due dates at the start of each session.",
       "default": true
     },
-    {
-      "key": "max_notes_before_prune",
+    "max_notes_before_prune": {
       "type": "number",
+      "title": "Max Notes Before Prune",
       "description": "Warn when the vault exceeds this many notes. Set to 0 to disable. Run 'chronicle-write archive' to prune old session notes.",
       "default": 1000
     }
-  ]
+  }
 }

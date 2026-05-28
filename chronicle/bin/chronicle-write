@@ -13,7 +13,7 @@ case "$subcommand" in
   session-start)
     bash "$SCRIPTS_DIR/first-run-init.sh"
     # Write session ID if not already set for this session
-    SLUG="${CHRONICLE_PROJECT_SLUG:-$(basename "$PWD")}"
+    SLUG="${CHRONICLE_PROJECT_SLUG:-$(basename "${CLAUDE_PROJECT_DIR:-$PWD}")}"
     DATA_DIR="${CLAUDE_PLUGIN_DATA:-${HOME}/.claude/plugin-data}"
     SESSION_FILE="$DATA_DIR/$SLUG/current-session-id"
     if [[ ! -f "$SESSION_FILE" ]]; then
