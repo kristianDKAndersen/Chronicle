@@ -3,13 +3,16 @@
 # AD2: may emit hook JSON to stdout when notes are due.
 set -euo pipefail
 
-SURFACE="${CLAUDE_PLUGIN_OPTION_surface_due_on_start:-true}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib-options.sh
+source "$SCRIPT_DIR/lib-options.sh"
+
+SURFACE="$(chronicle_opt surface_due_on_start true)"
 
 if [[ "$SURFACE" != "true" ]]; then
   exit 0
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB="$SCRIPT_DIR/../lib/chronicle-vault.js"
 
 # Surface due notes within 3 days via vault lib
@@ -25,7 +28,7 @@ if command -v bun &>/dev/null; then
   " 2>/dev/null || true
 
   # Count check — warn if vault exceeds configured threshold
-  MAX_NOTES="${CLAUDE_PLUGIN_OPTION_max_notes_before_prune:-}"
+  MAX_NOTES="$(chronicle_opt max_notes_before_prune "")"
   if [[ -n "$MAX_NOTES" ]]; then
     COUNT=$(bun --eval "import { countNotes } from '$LIB'; process.stdout.write(String(countNotes()));" 2>/dev/null || echo "0")
     if [[ "$COUNT" -gt "$MAX_NOTES" ]]; then

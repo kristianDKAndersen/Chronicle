@@ -3,10 +3,14 @@
 # AD2: writes only to stderr (stdout reserved for Claude Code hook pipeline).
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=lib-options.sh
+source "$SCRIPT_DIR/lib-options.sh"
+
 SLUG="${CHRONICLE_PROJECT_SLUG:-$(basename "${CLAUDE_PROJECT_DIR:-$PWD}")}"
 DATA_DIR="${CLAUDE_PLUGIN_DATA:-${HOME}/.claude/plugin-data}"
 SESSION_FILE="$DATA_DIR/$SLUG/current-session-id"
-AUTO_WRITE="${CLAUDE_PLUGIN_OPTION_auto_write_on_stop:-true}"
+AUTO_WRITE="$(chronicle_opt auto_write_on_stop true)"
 
 if [[ ! -f "$SESSION_FILE" ]]; then
   echo "chronicle stop-session: no current-session-id found, skipping" >&2
@@ -21,7 +25,6 @@ if [[ "$AUTO_WRITE" != "true" ]]; then
   exit 0
 fi
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LIB="$SCRIPT_DIR/../lib/chronicle-vault.js"
 NOTE_REL="sessions/${SESSION_ID}.md"
 CREATED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

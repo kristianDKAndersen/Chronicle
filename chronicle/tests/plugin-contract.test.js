@@ -159,6 +159,27 @@ describe('.mcp.json: env uses CHRONICLE_PROJECT_DIR, not CLAUDE_PROJECT_SLUG', (
   });
 });
 
+// ── version parity: plugin.json and marketplace.json must agree ──────────────
+describe('version parity: plugin.json === marketplace.json === 1.0.1', () => {
+  const MARKETPLACE_JSON = path.resolve(__dirname, '../../.claude-plugin/marketplace.json');
+
+  test('plugin.json version is 1.0.1', () => {
+    const manifest = JSON.parse(fs.readFileSync(PLUGIN_JSON, 'utf8'));
+    expect(manifest.version).toBe('1.0.1');
+  });
+
+  test('marketplace.json plugins[0].version is 1.0.1', () => {
+    const marketplace = JSON.parse(fs.readFileSync(MARKETPLACE_JSON, 'utf8'));
+    expect(marketplace.plugins[0].version).toBe('1.0.1');
+  });
+
+  test('both versions are equal', () => {
+    const manifest = JSON.parse(fs.readFileSync(PLUGIN_JSON, 'utf8'));
+    const marketplace = JSON.parse(fs.readFileSync(MARKETPLACE_JSON, 'utf8'));
+    expect(manifest.version).toBe(marketplace.plugins[0].version);
+  });
+});
+
 // ── FIX 3: server derives slug from CHRONICLE_PROJECT_DIR ────────────────────
 describe('chronicle-server: slug derivation from CHRONICLE_PROJECT_DIR', () => {
   let tmpDir;
