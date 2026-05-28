@@ -39,12 +39,42 @@ case "$subcommand" in
     ;;
 
   # ── Extension point: future subcommands — add cases below this line ──────
-  # archive)
-  #   bash "$SCRIPTS_DIR/archive.sh" "${@:2}"
-  #   ;;
-  # prune)
-  #   bash "$SCRIPTS_DIR/prune.sh" "${@:2}"
-  #   ;;
+  archive)
+    LIB="$SCRIPT_DIR/../lib/chronicle-vault.js"
+    DRY_RUN_FLAG="${2:-}"
+    DRY_RUN="false"
+    [[ "$DRY_RUN_FLAG" == "--dry-run" ]] && DRY_RUN="true"
+    if command -v bun &>/dev/null; then
+      bun --eval "
+        import { archiveNotes } from '$LIB';
+        const r = await archiveNotes({ olderThanDays: 180, dryRun: $DRY_RUN });
+        if ($DRY_RUN) {
+          process.stderr.write('chronicle archive: dry-run -- no files moved\n');
+        } else {
+          process.stderr.write('chronicle archive: archived ' + r.archived + ' note(s)\n');
+        }
+      " 2>&1 || true
+    fi
+    ;;
+
+  prune)
+    LIB="$SCRIPT_DIR/../lib/chronicle-vault.js"
+    DRY_RUN_FLAG="${2:-}"
+    DRY_RUN="false"
+    [[ "$DRY_RUN_FLAG" == "--dry-run" ]] && DRY_RUN="true"
+    if command -v bun &>/dev/null; then
+      bun --eval "
+        import { pruneFixtures } from '$LIB';
+        const r = pruneFixtures({ dryRun: $DRY_RUN });
+        if ($DRY_RUN) {
+          process.stderr.write('chronicle prune: dry-run -- ' + r.count + ' would be removed\n');
+        } else {
+          process.stderr.write('chronicle prune: removed ' + r.count + ' note(s)\n');
+        }
+      " 2>&1 || true
+    fi
+    ;;
+
   # import)
   #   bash "$SCRIPTS_DIR/migrate-from-advisor.sh" "${@:2}"
   #   ;;
