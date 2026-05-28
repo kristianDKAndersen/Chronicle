@@ -28,12 +28,12 @@ describe('plugin.json: userConfig is an object map', () => {
     expect(manifest.userConfig).not.toBeNull();
   });
 
-  test('userConfig has exactly 6 keys', () => {
+  test('userConfig has exactly 5 keys', () => {
     const raw = fs.readFileSync(PLUGIN_JSON, 'utf8');
     manifest = JSON.parse(raw);
     const keys = Object.keys(manifest.userConfig);
-    expect(keys).toHaveLength(6);
-    expect(keys).toContain('capture_profile');
+    expect(keys).toHaveLength(5);
+    expect(keys).not.toContain('capture_profile');
     expect(keys).toContain('significance_mode');
     expect(keys).toContain('auto_write_on_stop');
     expect(keys).toContain('lesson_on_failure');
@@ -49,11 +49,42 @@ describe('plugin.json: userConfig is an object map', () => {
     }
   });
 
-  test('capture_profile and significance_mode have type "string"', () => {
+  test('significance_mode has type "string"', () => {
     const raw = fs.readFileSync(PLUGIN_JSON, 'utf8');
     manifest = JSON.parse(raw);
-    expect(manifest.userConfig.capture_profile.type).toBe('string');
     expect(manifest.userConfig.significance_mode.type).toBe('string');
+  });
+});
+
+// ── env var prefix guard ──────────────────────────────────────────────────────
+describe('scripts/bin: use CLAUDE_PLUGIN_OPTION_ prefix (correct)', () => {
+  const SCRIPTS_DIR = path.resolve(__dirname, '../scripts');
+  const BIN_DIR = path.resolve(__dirname, '../bin');
+  // Split to avoid self-detection — the joined form is the old wrong prefix
+  const WRONG_PREFIX = 'CHRONICLE_PLUGIN' + '_OPTION_';
+
+  function readShellFiles(...dirs) {
+    const files = [];
+    for (const dir of dirs) {
+      for (const name of fs.readdirSync(dir)) {
+        files.push({ name, content: fs.readFileSync(path.join(dir, name), 'utf8') });
+      }
+    }
+    return files;
+  }
+
+  test('no script or bin file references the old wrong-prefix var', () => {
+    const files = readShellFiles(SCRIPTS_DIR, BIN_DIR);
+    for (const { name, content } of files) {
+      expect(content, `${name} must not contain the old prefix`)
+        .not.toContain(WRONG_PREFIX);
+    }
+  });
+
+  test('at least one script references CLAUDE_PLUGIN_OPTION_ (correct prefix)', () => {
+    const files = readShellFiles(SCRIPTS_DIR, BIN_DIR);
+    const hasCorrect = files.some(({ content }) => content.includes('CLAUDE_PLUGIN_OPTION_'));
+    expect(hasCorrect).toBe(true);
   });
 });
 

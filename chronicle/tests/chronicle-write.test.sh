@@ -60,7 +60,7 @@ assert_file_not_exists() {
 assert_empty_dir() {
   local label="$1" dir="$2"
   local count
-  count=$(find "$dir" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+  count=$(find "$dir" -name "*.md" 2>/dev/null | wc -l | tr -d ' ') || true
   if [[ "$count" -eq 0 ]]; then
     echo "PASS: $label"
     ((++pass_count))

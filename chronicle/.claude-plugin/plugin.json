@@ -5,12 +5,6 @@
   "version": "1.0.0",
   "description": "Per-project persistent memory for any Claude agent.",
   "userConfig": {
-    "capture_profile": {
-      "type": "string",
-      "title": "Capture Profile",
-      "description": "How much the plugin captures automatically. One of: minimal, balanced, aggressive. 'minimal' = only explicit saves; 'balanced' = significant events + explicit; 'aggressive' = all tool use.",
-      "default": "balanced"
-    },
     "significance_mode": {
       "type": "string",
       "title": "Significance Mode",

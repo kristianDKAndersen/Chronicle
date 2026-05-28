@@ -47,16 +47,10 @@ On first run, the `session-start` hook calls `first-run-init.sh` which creates y
 
 | Field | What it does |
 |-------|-------------|
-| `capture_profile` | Capture depth: `quiet` (session notes only), `standard` (session + lessons), or `verbose` (all note types) |
 | `lesson_on_failure` | Whether to auto-capture a lesson candidate on PostToolUseFailure (default `true`) |
 | `significance_mode` | `hybrid` auto-captures and accepts explicit `/remember` entries; `explicit-only` captures nothing automatically |
 | `auto_write_on_stop` | Whether to write a session note on Stop hook (default `true`) |
 | `surface_due_on_start` | Whether to surface due reminders at SessionStart (default `true`) |
-
-**Capture profiles:**
-- `quiet` — writes a session note on Stop; no auto-lessons; good for low-noise workflows.
-- `standard` — default; session notes + lesson candidates on failures.
-- `verbose` — all note types; explicit `/remember` calls; useful when actively building a memory base.
 
 ## Slash commands
 
@@ -148,7 +142,7 @@ chronicle-write prune            # remove notes with short/fixture bodies
 chronicle-write prune --dry-run  # preview what would be removed
 ```
 
-**Count threshold** — if you set `CHRONICLE_PLUGIN_OPTION_MAX_NOTES_BEFORE_PRUNE` in the hook env, Chronicle warns you at SessionStart when the vault exceeds that count.
+**Count threshold** — if you set `CLAUDE_PLUGIN_OPTION_max_notes_before_prune` in the plugin userConfig, Chronicle warns you at SessionStart when the vault exceeds that count.
 
 Recommended schedule: run `chronicle-write archive` monthly, `chronicle-write prune` after any mass-import.
 
