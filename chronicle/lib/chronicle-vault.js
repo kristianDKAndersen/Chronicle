@@ -566,6 +566,15 @@ export async function archiveNotes({ olderThanDays = 180, dryRun = false } = {})
   return { archived: candidates.length, dryRun };
 }
 
+export function listArchived(limit = 100) {
+  try {
+    return db().prepare(`
+      SELECT path, sid, type, created_at, archived_at
+      FROM notes WHERE archived = 1 ORDER BY archived_at DESC LIMIT ?
+    `).all(limit);
+  } catch (_) { return []; }
+}
+
 // ── Phase 5: Retroactive Related-section rewrite ─────────────────────────────
 
 export function retroLink(opts = {}) {

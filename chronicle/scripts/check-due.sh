@@ -23,4 +23,13 @@ if command -v bun &>/dev/null; then
       process.stdout.write(JSON.stringify({type:'text',text:'Chronicle due notes:\n' + lines}) + '\n');
     }
   " 2>/dev/null || true
+
+  # Count check — warn if vault exceeds configured threshold
+  MAX_NOTES="${CHRONICLE_PLUGIN_OPTION_MAX_NOTES_BEFORE_PRUNE:-}"
+  if [[ -n "$MAX_NOTES" ]]; then
+    COUNT=$(bun --eval "import { countNotes } from '$LIB'; process.stdout.write(String(countNotes()));" 2>/dev/null || echo "0")
+    if [[ "$COUNT" -gt "$MAX_NOTES" ]]; then
+      echo "Your Chronicle vault has $COUNT notes. Run /chronicle:remember or /chronicle:due to review, or run 'chronicle-write prune' to archive old session notes."
+    fi
+  fi
 fi

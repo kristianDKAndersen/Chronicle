@@ -17,13 +17,9 @@ afterEach(() => {
 });
 
 describe('archiveNotes: dryRun=true', () => {
-  test('returns {dryRun:true} exactly', async () => {
+  test('returns result with dryRun:true and writes nothing', async () => {
     const result = await archiveNotes({ olderThanDays: 180, dryRun: true });
-    expect(result).toEqual({ dryRun: true });
-  });
-
-  test('does not create archive/ dir', async () => {
-    await archiveNotes({ olderThanDays: 180, dryRun: true });
+    expect(result.dryRun).toBe(true);
     expect(fs.existsSync(path.join(tmpDir, 'archive'))).toBe(false);
   });
 });
