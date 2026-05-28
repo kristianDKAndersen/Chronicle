@@ -1,5 +1,6 @@
 {
   "name": "chronicle",
+  "author": "Kristian Andersen",
   "displayName": "Chronicle — Persistent Agent Memory",
   "version": "1.0.0",
   "description": "Per-project persistent memory for any Claude agent.",
