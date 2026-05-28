@@ -4,8 +4,6 @@
   "displayName": "Chronicle — Persistent Agent Memory",
   "version": "1.0.0",
   "description": "Per-project persistent memory for any Claude agent.",
-  "hooks": "./hooks/hooks.json",
-  "mcpServers": "./.mcp.json",
   "userConfig": {
     "capture_profile": {
       "type": "string",
