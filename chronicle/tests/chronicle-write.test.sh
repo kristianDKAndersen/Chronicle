@@ -15,12 +15,12 @@ assert_matches() {
   local label="$1" actual="$2" pattern="$3"
   if echo "$actual" | grep -qE "$pattern"; then
     echo "PASS: $label"
-    ((pass_count++))
+    ((++pass_count))
   else
     echo "FAIL: $label"
     echo "  pattern: $pattern"
     echo "  actual:  $actual"
-    ((fail_count++))
+    ((++fail_count))
   fi
 }
 
@@ -28,10 +28,10 @@ assert_dir_exists() {
   local label="$1" dir="$2"
   if [[ -d "$dir" ]]; then
     echo "PASS: $label"
-    ((pass_count++))
+    ((++pass_count))
   else
     echo "FAIL: $label — directory not found: $dir"
-    ((fail_count++))
+    ((++fail_count))
   fi
 }
 
@@ -39,10 +39,10 @@ assert_file_exists() {
   local label="$1" file="$2"
   if [[ -f "$file" ]]; then
     echo "PASS: $label"
-    ((pass_count++))
+    ((++pass_count))
   else
     echo "FAIL: $label — file not found: $file"
-    ((fail_count++))
+    ((++fail_count))
   fi
 }
 
@@ -50,10 +50,10 @@ assert_file_not_exists() {
   local label="$1" file="$2"
   if [[ ! -f "$file" ]]; then
     echo "PASS: $label"
-    ((pass_count++))
+    ((++pass_count))
   else
     echo "FAIL: $label — file should not exist: $file"
-    ((fail_count++))
+    ((++fail_count))
   fi
 }
 
@@ -63,10 +63,10 @@ assert_empty_dir() {
   count=$(find "$dir" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
   if [[ "$count" -eq 0 ]]; then
     echo "PASS: $label"
-    ((pass_count++))
+    ((++pass_count))
   else
     echo "FAIL: $label — expected 0 .md files, found $count"
-    ((fail_count++))
+    ((++fail_count))
   fi
 }
 
