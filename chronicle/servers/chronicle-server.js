@@ -20,10 +20,14 @@ import {
   vaultRoot,
 } from '../lib/chronicle-vault.js';
 
-// S2 confirmation: env vars are CHRONICLE_DATA_DIR and CHRONICLE_PROJECT_SLUG (per .mcp.json).
+// Env: CHRONICLE_DATA_DIR + (CHRONICLE_PROJECT_SLUG back-compat, or CHRONICLE_PROJECT_DIR basename).
 function resolveVaultRoot() {
   const dataDir = process.env.CHRONICLE_DATA_DIR;
-  const slug = process.env.CHRONICLE_PROJECT_SLUG;
+  const slug =
+    process.env.CHRONICLE_PROJECT_SLUG ||
+    (process.env.CHRONICLE_PROJECT_DIR
+      ? path.basename(process.env.CHRONICLE_PROJECT_DIR)
+      : undefined);
   if (dataDir && slug) {
     process.env.CHRONICLE_VAULT = path.join(dataDir, 'projects', slug);
     delete process.env.CHRONICLE_PROJECT_SLUG;

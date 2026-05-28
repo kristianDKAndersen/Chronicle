@@ -3,7 +3,7 @@
 # AD2: writes only to stderr (stdout reserved for Claude Code hook pipeline).
 set -euo pipefail
 
-SLUG="${CHRONICLE_PROJECT_SLUG:-$(basename "$PWD")}"
+SLUG="${CHRONICLE_PROJECT_SLUG:-$(basename "${CLAUDE_PROJECT_DIR:-$PWD}")}"
 DATA_DIR="${CLAUDE_PLUGIN_DATA:-${HOME}/.claude/plugin-data}"
 SESSION_FILE="$DATA_DIR/$SLUG/current-session-id"
 AUTO_WRITE="${CHRONICLE_PLUGIN_OPTION_AUTO_WRITE_ON_STOP:-true}"

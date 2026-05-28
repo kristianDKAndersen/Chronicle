@@ -3,7 +3,7 @@
 # AD2: writes nothing to stdout. Debug output → stderr only.
 set -euo pipefail
 
-SLUG="${CHRONICLE_PROJECT_SLUG:-$(basename "$PWD")}"
+SLUG="${CHRONICLE_PROJECT_SLUG:-$(basename "${CLAUDE_PROJECT_DIR:-$PWD}")}"
 DATA_DIR="${CLAUDE_PLUGIN_DATA:-${HOME}/.claude/plugin-data}"
 PROJECT_DIR="$DATA_DIR/$SLUG"
 SENTINEL="$PROJECT_DIR/initialized"
