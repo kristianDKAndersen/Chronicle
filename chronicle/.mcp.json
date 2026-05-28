@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "chronicle": {
+      "command": "bun",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/servers/chronicle-server.js"],
+      "env": {
+        "CHRONICLE_DATA_DIR": "${CLAUDE_PLUGIN_DATA}",
+        "CHRONICLE_PROJECT_SLUG": "${CLAUDE_PROJECT_SLUG}"
+      }
+    }
+  }
+}
