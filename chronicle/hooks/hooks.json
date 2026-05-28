@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "chronicle-write session-start"
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/chronicle-write session-start"
           }
         ]
       }
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "chronicle-write stop-session"
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/chronicle-write stop-session"
           }
         ]
       }
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "chronicle-write lesson-candidate"
+            "command": "${CLAUDE_PLUGIN_ROOT}/bin/chronicle-write lesson-candidate"
           }
         ]
       }

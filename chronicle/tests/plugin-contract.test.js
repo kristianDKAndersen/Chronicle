@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PLUGIN_JSON = path.resolve(__dirname, '../.claude-plugin/plugin.json');
 const MCP_JSON = path.resolve(__dirname, '../.mcp.json');
+const HOOKS_JSON = path.resolve(__dirname, '../hooks/hooks.json');
 
 // ── FIX 1: plugin.json manifest schema ─────────────────────────────────────
 describe('plugin.json: userConfig is an object map', () => {
@@ -70,6 +71,37 @@ describe('plugin.json: hooks and mcpServers are strings (or absent)', () => {
     const manifest = JSON.parse(raw);
     if ('mcpServers' in manifest) {
       expect(typeof manifest.mcpServers).toBe('string');
+    }
+  });
+});
+
+// ── FIX 4: hook commands must use an absolute ${CLAUDE_PLUGIN_ROOT} path ──────
+// Hooks run via /bin/sh, which does NOT have the plugin bin/ on PATH (only the
+// Bash tool does). A bare "chronicle-write ..." command fails at hook time with
+// "command not found". Every hook command must resolve the binary by absolute
+// path via ${CLAUDE_PLUGIN_ROOT}.
+describe('hooks.json: commands resolve the binary by absolute plugin path', () => {
+  test('hooks.json parses as valid JSON', () => {
+    const cfg = JSON.parse(fs.readFileSync(HOOKS_JSON, 'utf8'));
+    expect(cfg).toBeTruthy();
+  });
+
+  test('every hook command references ${CLAUDE_PLUGIN_ROOT}/bin/chronicle-write, never a bare command', () => {
+    const cfg = JSON.parse(fs.readFileSync(HOOKS_JSON, 'utf8'));
+    const commands = [];
+    for (const matchers of Object.values(cfg.hooks)) {
+      for (const m of matchers) {
+        for (const h of m.hooks ?? []) {
+          if (h.type === 'command') commands.push(h.command);
+        }
+      }
+    }
+    expect(commands.length).toBeGreaterThanOrEqual(3);
+    for (const cmd of commands) {
+      expect(cmd, `hook command must use absolute plugin path: ${cmd}`)
+        .toContain('${CLAUDE_PLUGIN_ROOT}/bin/chronicle-write');
+      expect(cmd, `hook command must not invoke a bare chronicle-write: ${cmd}`)
+        .not.toMatch(/^chronicle-write\b/);
     }
   });
 });
