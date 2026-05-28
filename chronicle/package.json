@@ -4,5 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "bun test"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
   }
 }
