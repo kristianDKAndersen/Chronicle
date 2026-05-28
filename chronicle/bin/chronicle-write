@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# chronicle-write — Chronicle plugin dispatcher binary.
+# Usage: chronicle-write <subcommand> [args...]
+# Subcommands: session-start, stop-session, lesson-candidate, due
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPTS_DIR="$(cd "$SCRIPT_DIR/../scripts" && pwd)"
+
+subcommand="${1:-}"
+
+case "$subcommand" in
+  session-start)
+    bash "$SCRIPTS_DIR/first-run-init.sh"
+    # Write session ID if not already set for this session
+    SLUG="${CHRONICLE_PROJECT_SLUG:-$(basename "$PWD")}"
+    DATA_DIR="${CLAUDE_PLUGIN_DATA:-${HOME}/.claude/plugin-data}"
+    SESSION_FILE="$DATA_DIR/$SLUG/current-session-id"
+    if [[ ! -f "$SESSION_FILE" ]]; then
+      SESSION_ID="$(date +%s)-$(openssl rand -hex 4)"
+      echo "$SESSION_ID" > "$SESSION_FILE"
+      echo "chronicle: session started: $SESSION_ID" >&2
+    else
+      echo "chronicle: session already active: $(cat "$SESSION_FILE")" >&2
+    fi
+    bash "$SCRIPTS_DIR/check-due.sh"
+    ;;
+
+  stop-session)
+    bash "$SCRIPTS_DIR/stop-session.sh"
+    ;;
+
+  lesson-candidate)
+    bash "$SCRIPTS_DIR/lesson-candidate.sh"
+    ;;
+
+  due)
+    bash "$SCRIPTS_DIR/check-due.sh"
+    ;;
+
+  # ── Extension point: future subcommands — add cases below this line ──────
+  # archive)
+  #   bash "$SCRIPTS_DIR/archive.sh" "${@:2}"
+  #   ;;
+  # prune)
+  #   bash "$SCRIPTS_DIR/prune.sh" "${@:2}"
+  #   ;;
+  # import)
+  #   bash "$SCRIPTS_DIR/migrate-from-advisor.sh" "${@:2}"
+  #   ;;
+  # ── End extension point ───────────────────────────────────────────────────
+
+  "")
+    echo "Usage: chronicle-write <subcommand> [args...]" >&2
+    echo "Subcommands: session-start, stop-session, lesson-candidate, due" >&2
+    exit 1
+    ;;
+  *)
+    echo "chronicle-write: unknown subcommand: $subcommand" >&2
+    exit 1
+    ;;
+esac
