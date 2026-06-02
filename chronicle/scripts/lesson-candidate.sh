@@ -5,7 +5,10 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=lib-options.sh
-source "$SCRIPT_DIR/lib-options.sh"
+source "$SCRIPT_DIR/lib-options.sh"  # also exports CHRONICLE_VAULT / CHRONICLE_RESOLVED_SLUG
+
+# Capture the PostToolUseFailure payload (failed tool call + error) from stdin.
+HOOK_INPUT="$(cat || true)"
 
 LESSON_ON_FAILURE="$(chronicle_opt lesson_on_failure true)"
 SIG_MODE="$(chronicle_opt significance_mode hybrid)"
@@ -20,32 +23,16 @@ if [[ "$SIG_MODE" == "explicit-only" ]]; then
   exit 0
 fi
 
-SLUG="${CHRONICLE_PROJECT_SLUG:-$(basename "$PWD")}"
-DATA_DIR="${CLAUDE_PLUGIN_DATA:-${HOME}/.claude/plugin-data}"
-SESSION_FILE="$DATA_DIR/$SLUG/current-session-id"
-SESSION_ID=""
-if [[ -f "$SESSION_FILE" ]]; then
-  SESSION_ID=$(cat "$SESSION_FILE")
-fi
-
-LIB="$SCRIPT_DIR/../lib/chronicle-vault.js"
+SLUG="${CHRONICLE_RESOLVED_SLUG:-${CHRONICLE_PROJECT_SLUG:-$(basename "${CLAUDE_PROJECT_DIR:-$PWD}")}}"
 CREATED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-# Use a timestamp-based filename to avoid collisions between concurrent failures
-NOTE_REL="lessons/lesson-${CREATED_AT//[:TZ]/-}.md"
 
-if command -v bun &>/dev/null; then
-  bun --eval "
-    import { writeNote } from '$LIB';
-    writeNote('$NOTE_REL', {
-      type: 'lesson',
-      session_id: '${SESSION_ID:-unknown}',
-      project: '$SLUG',
-      agent: 'claude',
-      created_at: '$CREATED_AT',
-      status: 'candidate'
-    }, 'Auto-captured lesson candidate from tool failure.');
-    process.stderr.write('chronicle: lesson candidate written: $NOTE_REL\n');
-  " 2>&1 >&2 || echo "chronicle: vault write failed (bun error)" >&2
-else
+if ! command -v bun &>/dev/null; then
   echo "chronicle lesson-candidate: bun not found, skipping vault write" >&2
+  exit 0
 fi
+
+CHRONICLE_HOOK_INPUT="$HOOK_INPUT" \
+CHRONICLE_SLUG="$SLUG" \
+CHRONICLE_CREATED_AT="$CREATED_AT" \
+  bun "$SCRIPT_DIR/build-lesson-candidate.js" >&2 \
+  || echo "chronicle lesson-candidate: vault write failed (bun error)" >&2
