@@ -79,3 +79,66 @@ permission model, vault-growth/archival, and migration from an existing advisor 
 ```sh
 cd chronicle && bun install && bun test && bash tests/smoke.sh
 ```
+
+## Changelog
+
+Format based on [Keep a Changelog](https://keepachangelog.com); this project
+follows [Semantic Versioning](https://semver.org).
+
+### 1.0.2 — 2026-06-02
+
+- **Fixed — auto-write now lands in the vault the MCP server reads.** Hooks
+  wrote to the global default vault (`~/.claude/vault`) while the MCP server
+  reads the per-project vault (`$DATA/projects/<slug>`), so auto-captured notes
+  were stranded in a DB the reader never opens and `vault_recent` came back
+  empty. `lib-options.sh` now exports `CHRONICLE_VAULT = $DATA/projects/<slug>`
+  on source (mirroring the server's `resolveVaultRoot()`), fixing session,
+  lesson, and due-check vault location in one shared place.
+- **Fixed — empty note bodies.** Session notes are now driven off the Stop
+  hook's `transcript_path` (session-id-keyed, upserted on every Stop with
+  `created_at` preserved) and carry a real body: title, first prompt, branch,
+  files touched, commands (with `VAR=` assignments filtered out), and last
+  status. Lesson candidates capture the actual failed tool, action, and error
+  from the `PostToolUseFailure` payload instead of a fixed string.
+- **Fixed — hook stdout contract.** Corrected `2>&1 >&2` (which sent both
+  streams to stdout) to `>&2`, keeping stdout empty as the pipeline contract
+  requires.
+
+### 1.0.1 — 2026-05-28
+
+- **Added — project-level config override.** New shared resolver
+  `chronicle/scripts/lib-options.sh` (`chronicle_opt <key> <default>`) with
+  resolution order: project file (`.claude/chronicle-config.json`) >
+  `CLAUDE_PLUGIN_OPTION_<key>` env > default. `stop-session.sh`,
+  `lesson-candidate.sh`, and `check-due.sh` now source it and resolve each
+  option through it.
+- **Fixed — userConfig wiring.** Scripts read `CLAUDE_PLUGIN_OPTION_*`
+  userConfig variables; dropped the unused `capture_profile`. Hook paths use
+  `${CLAUDE_PLUGIN_ROOT}/bin` (hooks run via `/bin/sh` without the plugin
+  `bin/` on `PATH`).
+- **Changed.** Bumped `plugin.json` / `marketplace.json` to `1.0.1` so
+  `claude plugin update` detects the change; documented the exact flat-JSON
+  project-config shape in the `configure` skill.
+
+### 1.0.0 — 2026-05-28
+
+Initial MVP — built and verified end-to-end, installable from this repo.
+
+- **Core vault** (`chronicle/lib/chronicle-vault.js`) — Markdown source of
+  truth plus a rebuildable SQLite FTS5 index; 8 note types (session,
+  synthesis, lesson, decision, reminder, reference, checkpoint, constraint).
+- **MCP server** (`chronicle/servers/chronicle-server.js`) — 6 tools:
+  `vault_search`, `vault_due`, `vault_recent`, `vault_backlinks`,
+  `vault_neighbors`, `vault_write`.
+- **Skills** — `/chronicle:remember` (search-before-write), `/chronicle:search`,
+  `/chronicle:due`, `/chronicle:configure`.
+- **Automatic capture via hooks** — session summary on Stop, lesson candidates
+  on tool failure, due-note surfacing on session start (all configurable).
+- **Archival & growth** — `archiveNotes`/`listArchived` plus `archive`/`prune`
+  subcommands with count-checks.
+- **Migration** — non-destructive `migrate-from-advisor.sh` + `import`
+  subcommand to bring across an existing advisor vault.
+- **Packaging** — spec-compliant plugin contract (`userConfig` object,
+  `CLAUDE_PROJECT_DIR`-based slug), `chronicle-marketplace` manifest, and repo
+  install/sharing docs.
+- **Tests** — 37 unit + 14 shell + integration smoke, all green.
