@@ -45,6 +45,10 @@ The `commit-msg` hook blocks anything else.
 **Good:** `[ABC-123] add co-applicant SSN validation`
 **Bad:** `ABC-123: add validation` (wrong form) · `[ABC-0000] wip` (placeholder) · `fix stuff` (no ticket)
 
+The ticket may sit in the commit **header or body** — the `commit-msg` hook
+accepts either, so a body line like `Refs [ABC-123]` is valid too. Keeping it in
+the header is preferred (and the branch-derived auto-prefix puts it there).
+
 If the current branch already contains the ticket (e.g. `feature/ABC-123-...`), the
 `prepare-commit-msg` hook prepends `[ABC-123] ` for you automatically — write just
 the description and it becomes compliant. When committing on the user's behalf,
@@ -70,9 +74,13 @@ Approved `<type>` values: `feature` `bugfix` `hotfix` `refactor` `chore`
 | `refactor/` | Code restructuring without behaviour change |
 | `chore/` | Maintenance, dependency updates, tooling |
 | `incident/` | Emergency production incident patches |
+| `release/` | Release preparation / cut |
 
-**Banned:** person-name prefixes (`alex/`, `sam/`, …) and `epic/` / `story/` — map
-those to `feature/`. Never commit directly to `main`.
+This list is **non-exhaustive** — teams may add types that fit their use-case
+(e.g. `story/`), and the `pre-push` hook accepts any lowercase type by default. To
+lock a repo to a fixed set, run
+`git config sdlc.branchTypes "feature bugfix hotfix refactor chore incident release"`.
+Never commit directly to `main`.
 
 Create a branch off the latest base branch:
 
@@ -104,9 +112,9 @@ EOF
 
 ## What the hooks enforce (so you don't get surprised)
 
-- `commit-msg` — rejects any subject not matching `[<prefix>-<n>] ` and rejects an all-zero ticket.
+- `commit-msg` — requires a `[<prefix>-<n>]` ticket somewhere in the header or body; rejects an all-zero placeholder.
 - `prepare-commit-msg` — auto-prepends the ticket from the branch name; prompts only at a real terminal (never hangs CI/agents).
-- `pre-push` — rejects branch names that don't match `<type>/<prefix>-<n>-...`.
+- `pre-push` — requires `<type>/<prefix>-<n>-...`; any lowercase type by default, or a fixed set via `git config sdlc.branchTypes`.
 - `pre-commit` — optional; runs a configured check-only lint (`sdlc.lintCommand`) on staged files, no-op if unset.
 
 Install or repair them with [/sdlc-workflow:install-hooks](../install-hooks/SKILL.md).

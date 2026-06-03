@@ -129,9 +129,10 @@ Once you have a confirmed `TICKET-ID`:
    | Refactor (no behaviour change) | `refactor/` |
    | Maintenance / deps / tooling | `chore/` |
    | Emergency incident patch | `incident/` |
+   | Release preparation | `release/` |
 
-   `epic/` and `story/` are not approved → `feature/`. When ambiguous, default to
-   `feature/` and confirm.
+   The type list is non-exhaustive — teams may use others (e.g. `story/`). When
+   ambiguous, default to `feature/` and confirm.
 2. Build a short kebab-case description from the summary (3–5 words). Confirm if
    not obvious.
 3. Create off the detected base branch:

@@ -1,38 +1,39 @@
 #!/usr/bin/env sh
-# commit-msg — enforce the [TICKET-ID] commit-subject convention.
+# commit-msg — require a ticket ID in the commit message.
 #
-# The ticket prefix is read from local git config `sdlc.ticketPrefix` (set by the
-# install step). If unset, a permissive pattern (UPPERCASE-digits) is used so the
-# hook still works before a project key is configured. Runs in every context
-# (interactive, -m, CI, agents), so this is the actual traceability gate.
+# Per the SDLC spec, the ticket may appear in the HEADER or the BODY, in the form
+# [TEAM-ID] (e.g. [PAY-1234]). The prefix comes from local git config
+# `sdlc.ticketPrefix`; with none set, a permissive UPPERCASE-123 pattern is used.
+# Runs in every context (interactive, -m, CI, agents) — the real traceability gate.
 
 msg_file="$1"
 
-# First line that is neither blank nor a comment = the subject.
-subject=$(grep -vE '^[[:space:]]*#' "$msg_file" | grep -vE '^[[:space:]]*$' | head -n1)
+# All non-comment lines = header + body.
+noncomment=$(grep -vE '^[[:space:]]*#' "$msg_file")
 
-# Let git-generated messages through untouched.
+# First non-blank line = subject; let git-generated messages through untouched.
+subject=$(printf '%s\n' "$noncomment" | grep -vE '^[[:space:]]*$' | head -n1)
 case "$subject" in
   "Merge "*|"Revert "*|"fixup! "*|"squash! "*|"amend! "*) exit 0 ;;
 esac
 
 prefix=$(git config --get sdlc.ticketPrefix 2>/dev/null || true)
 if [ -n "$prefix" ]; then
-  ticket_re="${prefix}-[0-9]+"
+  ticket_re="\[${prefix}-[0-9]+\]"
 else
-  ticket_re="[A-Z][A-Z0-9]+-[0-9]+"
+  ticket_re="\[[A-Z][A-Z0-9]+-[0-9]+\]"
 fi
 
-if ! printf '%s' "$subject" | grep -qE "^\[${ticket_re}\] .+"; then
-  echo "❌ Commit subject must start with a ticket: [${prefix:-PROJ}-123] description" >&2
-  echo "   got: ${subject:-<empty>}" >&2
+# A bracketed ticket anywhere (header OR body)?
+if printf '%s\n' "$noncomment" | grep -qE "$ticket_re"; then
+  # Pass if at least one is NOT an all-zero placeholder (e.g. [ABC-0000]).
+  if printf '%s\n' "$noncomment" | grep -oE "$ticket_re" | grep -qvE '\[[A-Z][A-Z0-9]+-0+\]'; then
+    exit 0
+  fi
+  echo "❌ Ticket is an all-zero placeholder. Use the real ticket ID." >&2
   exit 1
 fi
 
-# Reject an all-zero placeholder ticket (e.g. PROJ-0000) — it breaks traceability.
-if printf '%s' "$subject" | grep -qE '^\[[A-Z][A-Z0-9]+-0+\]'; then
-  echo "❌ Placeholder ticket (all zeros) is not a real ticket. Use the actual ID." >&2
-  exit 1
-fi
-
-exit 0
+echo "❌ Commit must include a ticket ID in the header or body: [${prefix:-TEAM}-123]" >&2
+echo "   e.g. [${prefix:-PAY}-1234] add credit card validation logic" >&2
+exit 1

@@ -23,6 +23,7 @@ from `git config sdlc.ticketPrefix`; `ABC` below stands for that configured key.
 
 | Rule | Detail |
 |------|--------|
+| Location | The ticket may appear in the **header or the body** — the hook accepts either |
 | Prefix | `[ABC-123]` — square brackets, the project key, a hyphen, digits |
 | Separator | A single space after `]`, then the description |
 | Description | Imperative, concise; explain *why* in the body when non-obvious |
@@ -52,9 +53,15 @@ If you want to require a fixed width, tighten the regex in `hooks/git/commit-msg
 | `refactor/` | Code restructuring without behaviour change | `refactor/ABC-2123-extract-auth-service` |
 | `chore/` | Maintenance, dependency updates, tooling | `chore/ABC-2010-update-dependencies` |
 | `incident/` | Emergency production incident patches | `incident/ABC-2392-restore-payment-flow` |
+| `release/` | Release preparation / cut | `release/ABC-2500-v2.3.0` |
 
-Person-name prefixes (`alex/`, `sam/`, …) are not valid. `epic/` and `story/` are
-not approved prefixes and must be replaced with `feature/`.
+This list is **non-exhaustive** — the SDLC spec lets teams add types that fit
+their use-case (e.g. `story/`). By default the `pre-push` hook accepts **any**
+lowercase type, as long as the `<type>/TEAM-TICKET-description` structure holds.
+To restrict a repo to a fixed set, configure
+`git config sdlc.branchTypes "feature bugfix hotfix refactor chore incident release"`.
+Person-name prefixes are discouraged but not blocked by default — add a restricted
+`sdlc.branchTypes` list to forbid them.
 
 ## Issue type ≠ branch prefix — two separate axes
 
@@ -72,6 +79,7 @@ the branch prefix.
 | Restructuring, no behaviour change | `refactor/` | Task |
 | Maintenance / deps / tooling | `chore/` | Task |
 | Emergency incident patch | `incident/` | Task (or Bug) |
+| Release preparation | `release/` | Task |
 
 ## Configuring for your team
 
@@ -80,5 +88,8 @@ the branch prefix.
   hooks accept any `UPPERCASE-123` ticket.
 - **Base branch:** the skills auto-detect `origin/HEAD`, falling back to `main`.
   Override with the `baseBranch` user config.
-- **Approved branch types / digit width:** edit `hooks/git/pre-push` and
-  `hooks/git/commit-msg` if your team's standard differs.
+- **Branch types:** any lowercase type is accepted by default (the spec's list is
+  non-exhaustive). Restrict to a fixed set with
+  `git config sdlc.branchTypes "feature bugfix hotfix refactor chore incident release"`.
+- **Digit width / strictness:** edit `hooks/git/pre-push` and `hooks/git/commit-msg`
+  if your team's standard differs (e.g. a fixed-width ticket number).

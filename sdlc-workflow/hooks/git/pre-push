@@ -1,6 +1,11 @@
 #!/usr/bin/env sh
-# pre-push — guard branch naming: <type>/TICKET-ID-description.
-# Approved types: feature bugfix hotfix refactor chore incident.
+# pre-push — guard branch naming: <type>/TEAM-TICKET-description (e.g. story/ABC-2474-...).
+#
+# Branch TYPES are non-exhaustive per the SDLC spec — any lowercase type is
+# accepted by default. A team may restrict to a fixed set via:
+#   git config sdlc.branchTypes "feature bugfix hotfix refactor chore incident release"
+# Recommended types: feature bugfix hotfix refactor chore incident release.
+# The team-code/ticket-id token (e.g. ABC-2474) must be present.
 #
 # git feeds refs on stdin as: <local ref> <local sha> <remote ref> <remote sha>
 
@@ -11,12 +16,20 @@ else
   ticket_re="[A-Z][A-Z0-9]+-[0-9]+"
 fi
 
+# Type segment: configured allow-list, else any lowercase type word (spec: non-exhaustive).
+types=$(git config --get sdlc.branchTypes 2>/dev/null || true)
+if [ -n "$types" ]; then
+  type_re="($(printf '%s' "$types" | tr -s ' ' '|'))"
+else
+  type_re="[a-z][a-z-]*"
+fi
+
 allowed_unchecked='^(main|master|develop|HEAD)$'
-valid_branch="^(feature|bugfix|hotfix|refactor|chore|incident)/${ticket_re}-.+"
+valid_branch="^${type_re}/${ticket_re}-.+"
 
 status=0
 while read -r local_ref local_sha remote_ref remote_sha; do
-  # Branch deletion (local sha is all zeros) — nothing to validate.
+  # Branch deletion (local sha all zeros) — nothing to validate.
   case "$local_sha" in *[!0]*) : ;; *) continue ;; esac
 
   # Only validate branch pushes, not tags.
@@ -28,14 +41,15 @@ while read -r local_ref local_sha remote_ref remote_sha; do
   printf '%s' "$branch" | grep -qE "$allowed_unchecked" && continue
 
   if ! printf '%s' "$branch" | grep -qE "$valid_branch"; then
-    echo "❌ Branch '$branch' does not follow <type>/${prefix:-PROJ}-123-description" >&2
-    echo "   Approved types: feature bugfix hotfix refactor chore incident" >&2
-    echo "   Banned: person-name prefixes (e.g. alex/), epic/, story/ (use feature/)" >&2
+    echo "❌ Branch '$branch' must follow <type>/${prefix:-TEAM}-123-description" >&2
+    echo "   Recommended types: feature bugfix hotfix refactor chore incident release (extensible)." >&2
+    [ -n "$types" ] && echo "   This repo restricts types to: $types" >&2
+    echo "   e.g. story/${prefix:-ABC}-2474-import-user-management" >&2
     status=1
     continue
   fi
 
-  # Reject an all-zero placeholder ticket in the branch (e.g. feature/PROJ-0000-...).
+  # Reject an all-zero placeholder ticket in the branch (e.g. feature/ABC-0000-...).
   if printf '%s' "$branch" | grep -qE '/[A-Z][A-Z0-9]+-0+-'; then
     echo "❌ Branch '$branch' uses an all-zero placeholder ticket. Use a real ID." >&2
     status=1
