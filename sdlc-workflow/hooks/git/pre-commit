@@ -1,0 +1,37 @@
+#!/usr/bin/env sh
+# pre-commit — OPTIONAL lint of staged files. Toolchain-agnostic.
+#
+# Runs the command in local git config `sdlc.lintCommand` (if set AND its binary
+# is on PATH), passing staged Added/Copied/Modified files as arguments. If no
+# command is configured or the binary is missing, this hook is a silent no-op —
+# so it is safe in any repo and any language. Check-only by convention: configure
+# a command that does NOT rewrite files, so partially-staged content is never
+# silently clobbered.
+#
+# Example: git config sdlc.lintCommand "eslint"
+#          git config sdlc.lintCommand "ruff check"
+
+lint_cmd=$(git config --get sdlc.lintCommand 2>/dev/null || true)
+[ -n "$lint_cmd" ] || exit 0
+
+# First token of the command must be an available binary.
+bin=$(printf '%s' "$lint_cmd" | awk '{print $1}')
+command -v "$bin" >/dev/null 2>&1 || exit 0
+
+# Staged files that were Added/Copied/Modified (not deletions).
+tmp=$(mktemp)
+git diff --cached --name-only --diff-filter=ACM > "$tmp" || true
+[ -s "$tmp" ] || { rm -f "$tmp"; exit 0; }
+
+# NUL-delimit so filenames with spaces survive.
+status=0
+tr '\n' '\0' < "$tmp" | xargs -0 $lint_cmd || status=1
+rm -f "$tmp"
+
+if [ "$status" -ne 0 ]; then
+  echo "" >&2
+  echo "❌ Lint failed on staged files (sdlc.lintCommand: $lint_cmd). Fix, then re-stage." >&2
+  echo "   Emergency bypass: git commit --no-verify" >&2
+fi
+
+exit $status

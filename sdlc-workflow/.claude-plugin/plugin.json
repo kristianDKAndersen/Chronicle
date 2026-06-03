@@ -1,0 +1,40 @@
+{
+  "name": "sdlc-workflow",
+  "author": { "name": "Kristian Andersen", "email": "kristian.andersen@samblagroup.com" },
+  "displayName": "SDLC Workflow — Ticket-driven Git",
+  "version": "1.0.0",
+  "description": "Ticket-driven git workflow: resolve a Jira ticket (existing, new, or from a Slack thread), open a compliant branch, and enforce [TICKET-ID] commits and <type>/TICKET-ID-desc branch names with git hooks.",
+  "license": "MIT",
+  "userConfig": {
+    "jiraProjectKey": {
+      "type": "string",
+      "title": "Jira Project Key",
+      "description": "Default Jira project key for new tickets and the ticket-ID pattern (e.g. ABC for ABC-123). Leave empty to be prompted, or to use a permissive UPPERCASE-123 pattern in the git hooks.",
+      "default": ""
+    },
+    "jiraCloudId": {
+      "type": "string",
+      "title": "Jira Cloud ID",
+      "description": "Optional. Atlassian cloudId or site host (e.g. yoursite.atlassian.net). Leave empty to auto-discover from the authenticated Atlassian connector at runtime.",
+      "default": ""
+    },
+    "baseBranch": {
+      "type": "string",
+      "title": "Base Branch",
+      "description": "Branch new work is cut from. Leave empty to auto-detect the remote default (origin/HEAD), falling back to main.",
+      "default": ""
+    },
+    "defaultIssueType": {
+      "type": "string",
+      "title": "Default Issue Type",
+      "description": "Issue type used when creating a ticket and none is specified.",
+      "default": "Task"
+    },
+    "lintCommand": {
+      "type": "string",
+      "title": "Pre-commit Lint Command",
+      "description": "Optional check-only lint command run by the pre-commit hook on staged files (e.g. 'eslint' or 'ruff check'). Empty disables the pre-commit lint. Applied per-repo by the install step.",
+      "default": ""
+    }
+  }
+}

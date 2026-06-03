@@ -1,0 +1,45 @@
+#!/usr/bin/env sh
+# pre-push — guard branch naming: <type>/TICKET-ID-description.
+# Approved types: feature bugfix hotfix refactor chore incident.
+#
+# git feeds refs on stdin as: <local ref> <local sha> <remote ref> <remote sha>
+
+prefix=$(git config --get sdlc.ticketPrefix 2>/dev/null || true)
+if [ -n "$prefix" ]; then
+  ticket_re="${prefix}-[0-9]+"
+else
+  ticket_re="[A-Z][A-Z0-9]+-[0-9]+"
+fi
+
+allowed_unchecked='^(main|master|develop|HEAD)$'
+valid_branch="^(feature|bugfix|hotfix|refactor|chore|incident)/${ticket_re}-.+"
+
+status=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # Branch deletion (local sha is all zeros) — nothing to validate.
+  case "$local_sha" in *[!0]*) : ;; *) continue ;; esac
+
+  # Only validate branch pushes, not tags.
+  case "$local_ref" in
+    refs/heads/*) branch=${local_ref#refs/heads/} ;;
+    *) continue ;;
+  esac
+
+  printf '%s' "$branch" | grep -qE "$allowed_unchecked" && continue
+
+  if ! printf '%s' "$branch" | grep -qE "$valid_branch"; then
+    echo "❌ Branch '$branch' does not follow <type>/${prefix:-PROJ}-123-description" >&2
+    echo "   Approved types: feature bugfix hotfix refactor chore incident" >&2
+    echo "   Banned: person-name prefixes (e.g. alex/), epic/, story/ (use feature/)" >&2
+    status=1
+    continue
+  fi
+
+  # Reject an all-zero placeholder ticket in the branch (e.g. feature/PROJ-0000-...).
+  if printf '%s' "$branch" | grep -qE '/[A-Z][A-Z0-9]+-0+-'; then
+    echo "❌ Branch '$branch' uses an all-zero placeholder ticket. Use a real ID." >&2
+    status=1
+  fi
+done
+
+exit $status

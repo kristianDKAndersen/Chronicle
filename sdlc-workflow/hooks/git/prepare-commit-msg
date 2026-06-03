@@ -1,0 +1,73 @@
+#!/usr/bin/env sh
+# prepare-commit-msg — make the [TICKET-ID] convention effortless.
+#
+# Derives the ticket from the branch name (<type>/TICKET-ID-...) and prepends
+# "[TICKET-ID] " automatically. Only falls back to an interactive prompt when a
+# real terminal is attached, so non-interactive commits (CI, agents, scripts)
+# never hang — the commit-msg hook is the actual gate.
+
+COMMIT_MSG_FILE="$1"
+COMMIT_SOURCE="$2"
+
+# Leave git-generated / pre-populated messages alone.
+case "$COMMIT_SOURCE" in
+  merge|squash|commit|template) exit 0 ;;
+esac
+
+prefix=$(git config --get sdlc.ticketPrefix 2>/dev/null || true)
+if [ -n "$prefix" ]; then
+  ticket_re="${prefix}-[0-9]+"
+else
+  ticket_re="[A-Z][A-Z0-9]+-[0-9]+"
+fi
+
+first_real_line() {
+  grep -vE '^[[:space:]]*#' "$1" | grep -vE '^[[:space:]]*$' | head -n1
+}
+
+subject=$(first_real_line "$COMMIT_MSG_FILE")
+
+# Already compliant — nothing to do.
+printf '%s' "$subject" | grep -qE "^\[${ticket_re}\] " && exit 0
+
+# Try to derive the ticket from the current branch.
+branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+ticket=$(printf '%s' "$branch" | grep -oE "$ticket_re" | head -n1)
+# Drop an all-zero placeholder (e.g. PROJ-0000).
+printf '%s' "$ticket" | grep -qE -- '-0+$' && ticket=""
+
+prepend_to_first_real_line() {
+  awk -v t="$1" '
+    BEGIN { done = 0 }
+    !done && $0 !~ /^[[:space:]]*#/ && $0 !~ /^[[:space:]]*$/ { print "[" t "] " $0; done = 1; next }
+    { print }
+  ' "$COMMIT_MSG_FILE" > "$COMMIT_MSG_FILE.tmp" && mv "$COMMIT_MSG_FILE.tmp" "$COMMIT_MSG_FILE"
+}
+
+apply_ticket() {
+  if [ -n "$subject" ]; then
+    prepend_to_first_real_line "$1"
+  else
+    # Empty message (editor mode): seed a ready-to-complete subject at the top.
+    { printf '[%s] \n' "$1"; cat "$COMMIT_MSG_FILE"; } > "$COMMIT_MSG_FILE.tmp" \
+      && mv "$COMMIT_MSG_FILE.tmp" "$COMMIT_MSG_FILE"
+  fi
+}
+
+if [ -n "$ticket" ]; then
+  apply_ticket "$ticket"
+  exit 0
+fi
+
+# No ticket in the branch name. Prompt only if a terminal is available.
+[ -e /dev/tty ] || exit 0
+{ exec < /dev/tty; } 2>/dev/null || exit 0
+while true; do
+  printf "No ticket in the branch name. Enter ticket (e.g. %s-123): " "${prefix:-PROJ}" > /dev/tty
+  read TICKET || exit 0
+  if printf '%s' "$TICKET" | grep -qE "^${ticket_re}$" && ! printf '%s' "$TICKET" | grep -qE -- '-0+$'; then
+    apply_ticket "$TICKET"
+    exit 0
+  fi
+  echo "Invalid ticket — expected ${prefix:-PROJ}-<number>, not an all-zero placeholder." > /dev/tty
+done

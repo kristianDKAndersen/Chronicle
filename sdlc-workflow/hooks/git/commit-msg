@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+# commit-msg — enforce the [TICKET-ID] commit-subject convention.
+#
+# The ticket prefix is read from local git config `sdlc.ticketPrefix` (set by the
+# install step). If unset, a permissive pattern (UPPERCASE-digits) is used so the
+# hook still works before a project key is configured. Runs in every context
+# (interactive, -m, CI, agents), so this is the actual traceability gate.
+
+msg_file="$1"
+
+# First line that is neither blank nor a comment = the subject.
+subject=$(grep -vE '^[[:space:]]*#' "$msg_file" | grep -vE '^[[:space:]]*$' | head -n1)
+
+# Let git-generated messages through untouched.
+case "$subject" in
+  "Merge "*|"Revert "*|"fixup! "*|"squash! "*|"amend! "*) exit 0 ;;
+esac
+
+prefix=$(git config --get sdlc.ticketPrefix 2>/dev/null || true)
+if [ -n "$prefix" ]; then
+  ticket_re="${prefix}-[0-9]+"
+else
+  ticket_re="[A-Z][A-Z0-9]+-[0-9]+"
+fi
+
+if ! printf '%s' "$subject" | grep -qE "^\[${ticket_re}\] .+"; then
+  echo "❌ Commit subject must start with a ticket: [${prefix:-PROJ}-123] description" >&2
+  echo "   got: ${subject:-<empty>}" >&2
+  exit 1
+fi
+
+# Reject an all-zero placeholder ticket (e.g. PROJ-0000) — it breaks traceability.
+if printf '%s' "$subject" | grep -qE '^\[[A-Z][A-Z0-9]+-0+\]'; then
+  echo "❌ Placeholder ticket (all zeros) is not a real ticket. Use the actual ID." >&2
+  exit 1
+fi
+
+exit 0

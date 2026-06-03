@@ -1,0 +1,74 @@
+#!/usr/bin/env sh
+# install-git-hooks — wire the sdlc-workflow git hooks into the current repo.
+#
+# Copies the hook scripts into a repo-local directory and points
+# core.hooksPath at it. Idempotent. Refuses to clobber an existing
+# hooksPath / husky setup unless --force.
+#
+# Usage:
+#   install-git-hooks [--prefix TICKETPREFIX] [--hooks-dir DIR]
+#                     [--lint "CMD"] [--force]
+#
+#   --prefix     Ticket project key (e.g. ABC). Stored in git config
+#                sdlc.ticketPrefix and used by the hooks. Omit for a
+#                permissive UPPERCASE-123 pattern.
+#   --hooks-dir  Where to install hooks (default: .githooks).
+#   --lint       Optional check-only lint command for pre-commit
+#                (e.g. "eslint" or "ruff check"). Stored in sdlc.lintCommand.
+#   --force      Install even if core.hooksPath / .husky already exists.
+
+set -e
+
+HOOKS_DIR=".githooks"
+PREFIX=""
+LINT=""
+FORCE=0
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --prefix)    PREFIX="$2"; shift 2 ;;
+    --hooks-dir) HOOKS_DIR="$2"; shift 2 ;;
+    --lint)      LINT="$2"; shift 2 ;;
+    --force)     FORCE=1; shift ;;
+    -h|--help)   sed -n '2,20p' "$0"; exit 0 ;;
+    *) echo "unknown argument: $1" >&2; exit 2 ;;
+  esac
+done
+
+git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo "❌ Not inside a git repo." >&2; exit 1; }
+root=$(git rev-parse --show-toplevel)
+
+# Hook templates ship next to this script (../hooks/git).
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+templates="$script_dir/../hooks/git"
+[ -d "$templates" ] || { echo "❌ Hook templates not found at $templates" >&2; exit 1; }
+
+# Don't silently hijack an existing hook setup.
+existing=$(git config --get core.hooksPath 2>/dev/null || true)
+if [ -n "$existing" ] && [ "$existing" != "$HOOKS_DIR" ] && [ "$FORCE" -ne 1 ]; then
+  echo "⚠️  core.hooksPath is already set to '$existing'." >&2
+  echo "    Re-run with --force to override, or --hooks-dir '$existing' to merge into it." >&2
+  exit 1
+fi
+if [ -d "$root/.husky" ] && [ "$FORCE" -ne 1 ]; then
+  echo "⚠️  This repo already uses husky (.husky/ present)." >&2
+  echo "    Re-run with --force to install the sdlc-workflow hooks anyway." >&2
+  exit 1
+fi
+
+mkdir -p "$root/$HOOKS_DIR"
+for h in commit-msg prepare-commit-msg pre-push pre-commit; do
+  cp "$templates/$h" "$root/$HOOKS_DIR/$h"
+  chmod +x "$root/$HOOKS_DIR/$h"
+done
+
+git config core.hooksPath "$HOOKS_DIR"
+[ -n "$PREFIX" ] && git config sdlc.ticketPrefix "$PREFIX"
+[ -n "$LINT" ]   && git config sdlc.lintCommand "$LINT"
+
+echo "✅ sdlc-workflow hooks installed → $HOOKS_DIR/ (core.hooksPath set)"
+echo "   ticket prefix : ${PREFIX:-<permissive: UPPERCASE-123>}"
+[ -n "$LINT" ] && echo "   lint command  : $LINT"
+echo
+echo "   Commit $HOOKS_DIR/ to share the hooks with the team, or leave it"
+echo "   untracked to keep them local. core.hooksPath is always per-clone."

@@ -4,7 +4,7 @@
     "name": "Kristian Andersen",
     "email": "kristian.andersen@samblagroup.com"
   },
-  "description": "Marketplace hosting the Chronicle persistent-memory plugin for Claude Code.",
+  "description": "Claude Code plugins by Kristian Andersen — Chronicle (persistent memory) and SDLC Workflow (ticket-driven git).",
   "plugins": [
     {
       "name": "chronicle",
@@ -18,6 +18,19 @@
       "license": "MIT",
       "tags": ["memory", "vault", "productivity"],
       "category": "productivity"
+    },
+    {
+      "name": "sdlc-workflow",
+      "source": "./sdlc-workflow",
+      "description": "Ticket-driven git workflow: resolve a Jira ticket (existing, new, or from a Slack thread), open a compliant branch, and enforce [TICKET-ID] commits and <type>/TICKET-ID-desc branches with git hooks.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Kristian Andersen",
+        "email": "kristian.andersen@samblagroup.com"
+      },
+      "license": "MIT",
+      "tags": ["git", "jira", "workflow", "hooks"],
+      "category": "workflow"
     }
   ]
 }
